@@ -37,6 +37,17 @@ function LoginContent() {
 
   useEffect(() => {
     let cancelled = false
+    // Garante a troca do código OAuth por sessão no retorno do Google (PKCE)
+    if (typeof window !== 'undefined') {
+      const hasOAuthParams =
+        window.location.search.includes('code=') ||
+        window.location.hash.includes('access_token=')
+      if (hasOAuthParams) {
+        void supabase.auth.exchangeCodeForSession({ currentUrl: window.location.href }).catch(() => {
+          // ignore - fluxo continuará com getSession abaixo
+        })
+      }
+    }
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {

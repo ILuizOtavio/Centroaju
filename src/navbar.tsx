@@ -28,6 +28,7 @@ export default function Navbar() {
   const [query, setQuery] = useState('')
   const [toast, setToast] = useState<string | null>(null)
   const router = useRouter()
+  const userName = user?.email?.split('@')[0] ?? 'usuário'
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -39,6 +40,14 @@ export default function Navbar() {
   useEffect(() => {
     let cancelled = false
 
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!cancelled) {
+        setUser(session?.user ?? null)
+        setAuthReady(true)
+      }
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -48,12 +57,7 @@ export default function Navbar() {
       }
     })
 
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!cancelled) {
-        setUser(session?.user ?? null)
-        setAuthReady(true)
-      }
-    })
+    initAuth()
 
     const raw = localStorage.getItem('ca_cart') || '[]'
     try {
@@ -120,9 +124,9 @@ export default function Navbar() {
 
           <div className="col-start-2 row-start-1 flex items-center justify-end gap-1.5 sm:gap-2 md:col-start-3 md:justify-end md:gap-3">
             {authReady && user ? (
-              <div className="hidden max-w-[min(160px,40vw)] items-center gap-1.5 sm:flex md:max-w-[200px]">
+              <div className="flex max-w-[min(160px,40vw)] items-center gap-1.5 sm:max-w-[220px] md:max-w-[260px]">
                 <span className="truncate text-xs text-[#333]/80" title={user.email}>
-                  Olá, {user.email?.split('@')[0]}
+                  Olá, {userName}
                 </span>
                 <button
                   type="button"

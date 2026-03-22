@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
 }
 
 export default function AuthForm({ defaultMode = 'signin' }: Props) {
+  const router = useRouter()
   const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -26,14 +28,23 @@ export default function AuthForm({ defaultMode = 'signin' }: Props) {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
+        setEmail('')
+        setPassword('')
+        setError(null)
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+
+        if (data?.session) {
+          router.replace('/')
+          router.refresh()
+          return
+        }
       }
+      setLoading(false)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message)
-    } finally {
       setLoading(false)
     }
   }

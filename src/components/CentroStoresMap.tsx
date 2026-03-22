@@ -11,7 +11,6 @@ const mapContainerStyle = {
   minHeight: '360px',
 }
 
-/** Centro visual do polígono Centro (Aracaju). */
 const center = {
   lat: (CENTRO_ARACAJU_BOUNDS.south + CENTRO_ARACAJU_BOUNDS.north) / 2,
   lng: (CENTRO_ARACAJU_BOUNDS.west + CENTRO_ARACAJU_BOUNDS.east) / 2,
@@ -24,17 +23,18 @@ const polygonPath = [
   { lat: CENTRO_ARACAJU_BOUNDS.north, lng: CENTRO_ARACAJU_BOUNDS.west },
 ]
 
+// ✅ Fora do componente — referências estáveis, sem recriar a cada render
 const libraries: ('geometry' | 'places')[] = []
+const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 
 type Props = {
   stores: PartnerStore[]
 }
 
 export default function CentroStoresMap({ stores }: Props) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'centroaju-maps',
-    googleMapsApiKey: apiKey,
+    googleMapsApiKey: API_KEY,
     libraries,
   })
 
@@ -62,7 +62,7 @@ export default function CentroStoresMap({ stores }: Props) {
 
   const onMapClick = useCallback(() => setActiveId(null), [])
 
-  if (!apiKey) {
+  if (!API_KEY) {
     return (
       <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-amber-300 bg-amber-50/80 p-8 text-center text-sm text-amber-900">
         <p className="font-semibold">Mapa indisponível</p>

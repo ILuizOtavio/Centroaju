@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import {
   ACHIEVEMENTS,
   accumulateXp,
@@ -17,6 +18,8 @@ import {
   type ZonaXPState,
 } from '@/lib/zona-xp'
 
+const ZonaXPMap = dynamic(() => import('@/components/ZonaXPMap'), { ssr: false })
+
 const DOW = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 export default function ZonaXPPage() {
@@ -24,6 +27,7 @@ export default function ZonaXPPage() {
   const [inside, setInside] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
   const [watchId, setWatchId] = useState<number | null>(null)
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const insideRef = useRef(false)
 
   const refresh = useCallback(() => {
@@ -64,6 +68,7 @@ export default function ZonaXPPage() {
         const { latitude, longitude } = pos.coords
         const ok = isInsideCentroZone(latitude, longitude)
         setInside(ok)
+        setCoords({ lat: latitude, lng: longitude })
       },
       () => {
         setGeoError('Permissão negada ou GPS indisponível — modo demonstração ativado.')
@@ -115,6 +120,7 @@ export default function ZonaXPPage() {
     }
     stopGeo()
     setInside(false)
+    setCoords(null)
   }
 
   function enableDemo() {
@@ -164,6 +170,24 @@ export default function ZonaXPPage() {
           oficial (polígono GPS).
         </p>
       </header>
+
+      {/* Mapa */}
+      <div className="mb-6 sm:mb-8">
+        <ZonaXPMap
+          userLat={state.demoMode ? -10.9114 : coords?.lat ?? null}
+          userLng={state.demoMode ? -37.049 : coords?.lng ?? null}
+          inside={inside || state.demoMode}
+        />
+        <p className="mt-1.5 text-center text-xs text-neutral-400">
+          {state.demoMode
+            ? 'Modo demonstração — posição simulada no centro'
+            : coords
+              ? inside
+                ? '✅ Você está dentro da zona XP'
+                : '📍 Você está fora da zona XP'
+              : 'Inicie uma sessão para ver sua posição no mapa'}
+        </p>
+      </div>
 
       <section className="mb-6 rounded-xl border border-[var(--border-subtle)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
         <h2 className="text-lg font-semibold text-[#333]">Sessão de presença</h2>
