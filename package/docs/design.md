@@ -223,7 +223,7 @@ strategies.
 
 All SSR frameworks today can be described as having the following patterns:
 
-1. **Middleware.** This is a function that runs on the server _before_ any
+1. **Proxy.** This is a function that runs on the server _before_ any
    rendering is done. It has access to the whole request, including headers,
    cookies and other infromation. Usually these functions have the right to
    change the response headers as well, such as for setting cookies. They are
@@ -267,7 +267,7 @@ setting cookies:
   to `Max-Age=0` such as when moving from more chunks to less chunks.
 - `setAll` a function whose first argument is an array of cookie objects `{
 name: string; value: string; options: CookieOptions }`. Each of those _must_
-  be set **both on the request (when available, usually in middlewares) and response**. If the client is used in server-rendered pages and components (pattern 3) and setting of cookies is not possible, the library must emit a warning that setting of cookies is required but not available. This is a developer aid to help identify mutations in server-rendering which is a code smell.
+  be set **both on the request (when available, usually in proxies) and response**. If the client is used in server-rendered pages and components (pattern 3) and setting of cookies is not possible, the library must emit a warning that setting of cookies is required but not available. This is a developer aid to help identify mutations in server-rendering which is a code smell.
 
 On the browser (client) the `createBrowserClient` function will use the
 underlying `document.cookie` API automatically. If this is not supported for
@@ -300,7 +300,7 @@ happens when a user opens a brand new tab after a while and types
 
 1. The browser sends a request to `https://app.example.com` with all the
    cookies in its store.
-2. The middleware (pattern 1) is invoked.
+2. The proxy (pattern 1) is invoked.
 3. The server client is created with a `getAll` that retrieves the cookies.
 4. The server client notices that the access token stored in the cookies has
    been expired for hours or days.
@@ -320,8 +320,8 @@ unlikely to need to refresh the user's session.
 There are two key points to identify from this about the behavior of
 `createServerClient`:
 
-1. **Using the middleware pattern is mandatory. Session refresh happens in the
-   middleware.** Not using a middleware function means that the session will
+1. **Using the proxy pattern is mandatory. Session refresh happens in the
+   proxy.** Not using a proxy function means that the session will
    likely not be properly refreshed, given that server pages and components don't
    always get to set cookies.
 2. **Cookies are set when the storage values change. Set-Cookie headers should

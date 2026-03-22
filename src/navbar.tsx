@@ -37,28 +37,20 @@ export default function Navbar() {
     localStorage.removeItem('ca_cart')
   }
 
+  // Auth — onAuthStateChange já dispara imediatamente com a sessão atual
   useEffect(() => {
-    let cancelled = false
-
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!cancelled) {
-        setUser(session?.user ?? null)
-        setAuthReady(true)
-      }
-    }
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!cancelled) {
-        setUser(session?.user ?? null)
-        setAuthReady(true)
-      }
+      setUser(session?.user ?? null)
+      setAuthReady(true)
     })
 
-    initAuth()
+    return () => subscription.unsubscribe()
+  }, [])
 
+  // Carrinho inicial
+  useEffect(() => {
     const raw = localStorage.getItem('ca_cart') || '[]'
     try {
       const arr = JSON.parse(raw)
@@ -66,13 +58,9 @@ export default function Navbar() {
     } catch {
       setCartCount(0)
     }
-
-    return () => {
-      cancelled = true
-      subscription.unsubscribe()
-    }
   }, [])
 
+  // Carrinho — escuta eventos de mudança
   useEffect(() => {
     let hideToast: ReturnType<typeof setTimeout>
     const refreshCartCount = () => {
@@ -88,7 +76,7 @@ export default function Navbar() {
       refreshCartCount()
       const detail = (e as CustomEvent<CartChangeDetail>).detail
       if (detail?.productName) {
-        setToast(`“${detail.productName}” adicionado ao carrinho`)
+        setToast(`"${detail.productName}" adicionado ao carrinho`)
         clearTimeout(hideToast)
         hideToast = setTimeout(() => setToast(null), 4000)
       }
@@ -222,7 +210,7 @@ export default function Navbar() {
             </Link>
           ))}
           <Link
-            href="/produtos"
+            href="/lojas"
             className="ml-auto shrink-0 whitespace-nowrap px-2 py-1 text-[var(--ml-blue)] hover:underline"
           >
             Ver lojas

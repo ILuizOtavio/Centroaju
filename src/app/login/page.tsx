@@ -43,7 +43,7 @@ function LoginContent() {
         window.location.search.includes('code=') ||
         window.location.hash.includes('access_token=')
       if (hasOAuthParams) {
-        void supabase.auth.exchangeCodeForSession({ currentUrl: window.location.href }).catch(() => {
+        void supabase.auth.exchangeCodeForSession(window.location.href).catch(() => {
           // ignore - fluxo continuará com getSession abaixo
         })
       }
@@ -68,16 +68,17 @@ function LoginContent() {
   }, [router])
 
   async function loginWithGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        queryParams: {
-          prompt: 'select_account',
-          access_type: 'offline',
-        },
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`, // ✅ aponta para a rota
+      queryParams: {
+        prompt: 'select_account',
+        access_type: 'offline',
       },
-    })
-  }
+    },
+  })
+}
 
   if (checking) {
     return (
