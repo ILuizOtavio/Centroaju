@@ -8,7 +8,7 @@ type Store = {
 
 export default function StoreCard({ store }: { store: Store }) {
   return (
-    <div className="bg-white shadow rounded-2xl p-4">
+    <div className="rounded-2xl border border-[var(--bege)] bg-white p-4 shadow-sm">
       {store.image && (
         <img
           src={store.image}
@@ -17,14 +17,14 @@ export default function StoreCard({ store }: { store: Store }) {
         />
       )}
 
-      <h3 className="font-semibold">{store.name}</h3>
+      <h3 className="font-semibold text-[var(--ardosia)]">{store.name}</h3>
 
       {store.price && (
-        <p className="text-green-600 font-bold">R$ {store.price}</p>
+        <p className="font-bold text-[var(--verde-xp)]">R$ {store.price}</p>
       )}
 
       {store.location && (
-        <p className="text-sm text-gray-500">{store.location}</p>
+        <p className="text-sm text-[var(--texto-sub)]">{store.location}</p>
       )}
     </div>
   );

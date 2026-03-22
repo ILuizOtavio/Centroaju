@@ -6,7 +6,7 @@ import type { PartnerStore } from '@/data/stores'
 const CentroStoresMap = dynamic(() => import('@/components/CentroStoresMap'), {
   ssr: false,
   loading: () => (
-    <div className="flex min-h-[360px] items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-neutral-100 text-sm text-neutral-600">
+    <div className="flex min-h-[360px] items-center justify-center rounded-xl border border-[var(--bege)] bg-[var(--cinza-q)] text-sm text-[var(--texto-sub)]">
       Carregando mapa…
     </div>
   ),
