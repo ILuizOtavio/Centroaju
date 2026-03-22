@@ -34,24 +34,24 @@ export default function EventCard({ event }: Props) {
   }
 
   return (
-    <div className="bg-white shadow-md rounded-2xl p-4 flex flex-col gap-2">
+    <div className="flex flex-col gap-2 rounded-2xl border border-[var(--bege)] bg-white p-4 shadow-sm">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">{event.title}</h3>
+        <h3 className="text-lg font-semibold text-[var(--ardosia)]">{event.title}</h3>
 
         {isDone && (
-          <span className="text-xs bg-gray-300 text-gray-700 px-2 py-1 rounded-full">
+          <span className="rounded-full bg-[var(--bege)] px-2 py-1 text-xs text-[var(--texto-sub)]">
             Encerrado
           </span>
         )}
       </div>
 
-      <p className="text-sm text-gray-600">{event.description}</p>
+      <p className="text-sm text-[var(--texto-sub)]">{event.description}</p>
 
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[var(--texto-sub)]">
         📍 {event.location}
       </div>
 
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[var(--texto-sub)]">
         🗓 {new Date(event.date).toLocaleString()}
       </div>
 
@@ -62,8 +62,8 @@ export default function EventCard({ event }: Props) {
           disabled={loading || confirmed}
           className={`mt-2 py-2 rounded-xl transition ${
             confirmed
-              ? "bg-green-600 text-white"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              ? "bg-[var(--verde-xp)] text-white"
+              : "bg-[var(--terracota)] text-white hover:bg-[var(--ml-blue-hover)]"
           }`}
         >
           {loading

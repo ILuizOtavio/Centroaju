@@ -26,9 +26,9 @@ export default function ZonaXPPage() {
   const [state, setState] = useState<ZonaXPState | null>(null)
   const [inside, setInside] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
-  const [watchId, setWatchId] = useState<number | null>(null)
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const insideRef = useRef(false)
+  const watchIdRef = useRef<number | null>(null)
 
   const refresh = useCallback(() => {
     setState(loadState())
@@ -57,7 +57,26 @@ export default function ZonaXPPage() {
     return () => window.clearInterval(id)
   }, [state?.sessionActive])
 
+  useEffect(() => {
+    startGeo()
+    return () => stopGeo()
+  }, [])
+
+  function beginSessionAuto() {
+    const s = loadState()
+    if (s.sessionActive) return
+    const next: ZonaXPState = {
+      ...s,
+      sessionActive: true,
+      sessionStartedAt: Date.now(),
+      lastAccumulatedAt: Date.now(),
+    }
+    saveState(next)
+    setState(next)
+  }
+
   function startGeo() {
+    if (watchIdRef.current != null) return
     if (!navigator.geolocation) {
       setGeoError('Geolocalização não disponível neste aparelho.')
       return
@@ -69,6 +88,7 @@ export default function ZonaXPPage() {
         const ok = isInsideCentroZone(latitude, longitude)
         setInside(ok)
         setCoords({ lat: latitude, lng: longitude })
+        if (ok) beginSessionAuto()
       },
       () => {
         setGeoError('Permissão negada ou GPS indisponível — modo demonstração ativado.')
@@ -80,29 +100,14 @@ export default function ZonaXPPage() {
       },
       { enableHighAccuracy: true, maximumAge: 10_000, timeout: 20_000 }
     )
-    setWatchId(id)
+    watchIdRef.current = id
   }
 
   function stopGeo() {
-    if (watchId != null) {
-      navigator.geolocation.clearWatch(watchId)
-      setWatchId(null)
+    if (watchIdRef.current != null) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+      watchIdRef.current = null
     }
-  }
-
-  function activateSession() {
-    const s = loadState()
-    const demo = !!geoError || !navigator.geolocation
-    const next: ZonaXPState = {
-      ...s,
-      sessionActive: true,
-      sessionStartedAt: Date.now(),
-      lastAccumulatedAt: Date.now(),
-      demoMode: demo || s.demoMode,
-    }
-    saveState(next)
-    setState(next)
-    startGeo()
   }
 
   function endSession() {
@@ -125,7 +130,13 @@ export default function ZonaXPPage() {
 
   function enableDemo() {
     const s = loadState()
-    const next = { ...s, demoMode: true }
+    const next = {
+      ...s,
+      demoMode: true,
+      sessionActive: true,
+      sessionStartedAt: s.sessionStartedAt ?? Date.now(),
+      lastAccumulatedAt: Date.now(),
+    }
     saveState(next)
     setState(next)
     setGeoError(null)
@@ -147,7 +158,7 @@ export default function ZonaXPPage() {
 
   if (!state) {
     return (
-      <div className="mx-auto max-w-4xl px-3 py-12 text-center text-sm text-neutral-500 sm:px-4 sm:py-16">
+      <div className="mx-auto max-w-4xl px-3 py-12 text-center text-sm text-[var(--texto-sub)] sm:px-4 sm:py-16">
         Carregando Zona XP…
       </div>
     )
@@ -164,8 +175,9 @@ export default function ZonaXPPage() {
   return (
     <div className="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8">
       <header className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-bold text-[#333] sm:text-3xl">Zona XP</h1>
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--verde-xp)]">Gamificação ao vivo</p>
+        <h1 className="text-2xl text-[var(--ardosia)] sm:text-3xl">Zona XP</h1>
+        <p className="mt-2 text-sm text-[var(--texto-sub)]">
           Gamificação por geolocalização no centro de Aracaju — ganhe XP enquanto circula pela área
           oficial (polígono GPS).
         </p>
@@ -178,7 +190,7 @@ export default function ZonaXPPage() {
           userLng={state.demoMode ? -37.049 : coords?.lng ?? null}
           inside={inside || state.demoMode}
         />
-        <p className="mt-1.5 text-center text-xs text-neutral-400">
+        <p className="mt-1.5 text-center text-xs text-[var(--texto-sub)]/80">
           {state.demoMode
             ? 'Modo demonstração — posição simulada no centro'
             : coords
@@ -189,38 +201,31 @@ export default function ZonaXPPage() {
         </p>
       </div>
 
-      <section className="mb-6 rounded-xl border border-[var(--border-subtle)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
-        <h2 className="text-lg font-semibold text-[#333]">Sessão de presença</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+      <section className="mb-6 rounded-xl border border-[var(--bege)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+        <h2 className="text-lg font-semibold text-[var(--ardosia)]">Sessão de presença</h2>
+        <p className="mt-1 text-sm text-[var(--texto-sub)]">
           {state.demoMode ? (
             <span className="font-medium text-amber-700">Modo demonstração ativo (XP como se estivesse na zona).</span>
           ) : null}{' '}
-          Polígono: lat −10,923° a −10,905° · long −37,062° a −37,043°.
+          A sessão inicia automaticamente ao entrar na zona. Polígono: lat −10,923° a −10,905° · long
+          −37,062° a −37,043°.
         </p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-          {!sessionRunning ? (
-            <button
-              type="button"
-              onClick={activateSession}
-              className="min-h-11 touch-manipulation rounded-lg bg-[var(--ml-blue)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--ml-blue-hover)]"
-            >
-              Ativar Zona XP
-            </button>
-          ) : (
+          {sessionRunning ? (
             <button
               type="button"
               onClick={endSession}
-              className="min-h-11 touch-manipulation rounded-lg bg-neutral-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
+              className="min-h-11 touch-manipulation rounded-lg bg-[var(--ardosia)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--ardosia-m)]"
             >
               Encerrar sessão
             </button>
-          )}
+          ) : null}
           {!state.demoMode ? (
             <button
               type="button"
               onClick={enableDemo}
-              className="min-h-11 touch-manipulation rounded-lg border border-[var(--border-subtle)] px-4 py-2.5 text-sm font-medium text-[#333] hover:bg-neutral-50"
+              className="min-h-11 touch-manipulation rounded-lg border border-[var(--bege)] px-4 py-2.5 text-sm font-medium text-[var(--ardosia)] hover:bg-[var(--cinza-q)]"
             >
               Modo demonstração
             </button>
@@ -233,7 +238,9 @@ export default function ZonaXPPage() {
           <p>
             <strong>Status GPS:</strong>{' '}
             {!sessionRunning
-              ? '—'
+              ? inside
+                ? 'Dentro da zona — iniciando sessão...'
+                : 'Aguardando entrada na zona'
               : state.demoMode
                 ? 'Demonstração (sempre conta XP)'
                 : inside
@@ -254,9 +261,9 @@ export default function ZonaXPPage() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[var(--border-subtle)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
-        <h2 className="text-lg font-semibold text-[#333]">Perfil</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+      <section className="mb-6 rounded-xl border border-[var(--bege)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+        <h2 className="text-lg font-semibold text-[var(--ardosia)]">Perfil</h2>
+        <p className="mt-1 text-sm text-[var(--texto-sub)]">
           Detecção automática por histórico: <strong>Guardião</strong> = 3+ visitas longas (≥6h) em dias úteis.
         </p>
         <p className="mt-2 text-sm">
@@ -267,32 +274,32 @@ export default function ZonaXPPage() {
           <button
             type="button"
             onClick={() => setManualProfile('explorador')}
-            className="rounded-md border px-3 py-1.5 text-sm"
+            className="rounded-md border border-[var(--bege)] px-3 py-1.5 text-sm"
           >
             Fixar Explorador
           </button>
           <button
             type="button"
             onClick={() => setManualProfile('guardiao')}
-            className="rounded-md border px-3 py-1.5 text-sm"
+            className="rounded-md border border-[var(--bege)] px-3 py-1.5 text-sm"
           >
             Fixar Guardião
           </button>
-          <button type="button" onClick={resetManual} className="rounded-md border px-3 py-1.5 text-sm">
+          <button type="button" onClick={resetManual} className="rounded-md border border-[var(--bege)] px-3 py-1.5 text-sm">
             Voltar ao automático
           </button>
         </div>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[var(--border-subtle)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
-        <h2 className="text-lg font-semibold text-[#333]">Streak semanal</h2>
+      <section className="mb-6 rounded-xl border border-[var(--bege)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+        <h2 className="text-lg font-semibold text-[var(--ardosia)]">Streak semanal</h2>
         <div className="mt-4 flex gap-0.5 sm:gap-1">
           {state.weekPresence.map((on, i) => (
             <div
               key={DOW[i]}
               title={DOW[i]}
               className={`flex h-9 min-w-0 flex-1 items-center justify-center rounded px-0.5 text-[10px] font-medium leading-tight sm:h-10 sm:px-1 sm:text-xs ${
-                on ? 'bg-[#00a650] text-white' : 'bg-neutral-100 text-neutral-400'
+                on ? 'bg-[var(--verde-xp)] text-white' : 'bg-[var(--cinza-q)] text-[var(--texto-sub)]'
               }`}
             >
               <span className="hidden sm:inline">{DOW[i]}</span>
@@ -300,13 +307,13 @@ export default function ZonaXPPage() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-sm text-neutral-600">
+        <p className="mt-3 text-sm text-[var(--texto-sub)]">
           Dias consecutivos com presença: <strong>{state.streakDays}</strong>
         </p>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[var(--border-subtle)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
-        <h2 className="text-lg font-semibold text-[#333]">Rank</h2>
+      <section className="mb-6 rounded-xl border border-[var(--bege)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+        <h2 className="text-lg font-semibold text-[var(--ardosia)]">Rank</h2>
         <p className="mt-1 text-sm">
           Nível: <strong>{RANK_LABELS[prog.tier]}</strong>
           {prog.next ? (
@@ -317,28 +324,28 @@ export default function ZonaXPPage() {
           ) : null}
         </p>
         {prog.next ? (
-          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-neutral-200">
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-[var(--bege)]">
             <div
-              className="h-full bg-[var(--ml-blue)] transition-all"
+              className="h-full bg-[var(--terracota)] transition-all"
               style={{ width: `${prog.pct * 100}%` }}
             />
           </div>
         ) : null}
       </section>
 
-      <section className="mb-6 rounded-xl border border-[var(--border-subtle)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
-        <h2 className="text-lg font-semibold text-[#333]">Ranking hoje (demo local)</h2>
-        <ul className="mt-4 divide-y divide-[var(--border-subtle)]">
+      <section className="mb-6 rounded-xl border border-[var(--bege)] bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+        <h2 className="text-lg font-semibold text-[var(--ardosia)]">Ranking hoje (demo local)</h2>
+        <ul className="mt-4 divide-y divide-[var(--bege)]">
           {board.map((row) => (
             <li
               key={`${row.rank}-${row.name}`}
               className={`flex min-w-0 items-center justify-between gap-2 py-2 text-sm ${
-                row.isYou ? 'rounded-md bg-[#ffe600]/40 px-2 font-semibold' : ''
+                row.isYou ? 'rounded-md bg-[var(--ouro)]/35 px-2 font-semibold' : ''
               }`}
             >
               <span className="min-w-0 truncate">
                 {row.rank}. {row.name}{' '}
-                <span className="text-neutral-500">
+                <span className="text-[var(--texto-sub)]">
                   {row.kind === 'guardiao' ? '🏛' : '🗺'}
                 </span>
               </span>
@@ -348,8 +355,8 @@ export default function ZonaXPPage() {
         </ul>
       </section>
 
-      <section className="rounded-xl border border-[var(--border-subtle)] bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-lg font-semibold text-[#333]">Conquistas</h2>
+      <section className="rounded-xl border border-[var(--bege)] bg-white p-4 shadow-sm sm:p-6">
+        <h2 className="text-lg font-semibold text-[var(--ardosia)]">Conquistas</h2>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {ACHIEVEMENTS.map((a) => {
             const ok = state.achievementsUnlocked.includes(a.id)
@@ -357,13 +364,13 @@ export default function ZonaXPPage() {
               <div
                 key={a.id}
                 className={`flex gap-3 rounded-lg border p-3 text-sm ${
-                  ok ? 'border-[#00a650]/40 bg-green-50/50' : 'border-neutral-200 bg-neutral-50 opacity-80'
+                  ok ? 'border-[var(--verde-xp)]/40 bg-[var(--verde-xp)]/10' : 'border-[var(--bege)] bg-[var(--cinza-q)] opacity-80'
                 }`}
               >
                 <span className="text-2xl">{ok ? a.icon : '🔒'}</span>
                 <div>
-                  <div className="font-semibold text-[#333]">{a.title}</div>
-                  <div className="text-xs text-neutral-600">{a.description}</div>
+                  <div className="font-semibold text-[var(--ardosia)]">{a.title}</div>
+                  <div className="text-xs text-[var(--texto-sub)]">{a.description}</div>
                 </div>
               </div>
             )
@@ -371,7 +378,7 @@ export default function ZonaXPPage() {
         </div>
       </section>
 
-      <p className="mt-8 text-center text-xs text-neutral-500">
+      <p className="mt-8 text-center text-xs text-[var(--texto-sub)]">
         Dados de XP e visitas salvos no seu navegador (localStorage). Em produção, o ideal é sincronizar
         com Supabase + PostGIS.
       </p>

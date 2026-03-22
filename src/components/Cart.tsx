@@ -43,28 +43,28 @@ export default function Cart({
   const waLink = `https://wa.me/?text=${message}`
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-white shadow-sm">
-      <div className="border-b border-[var(--border-subtle)] bg-neutral-50 px-4 py-3">
-        <h2 className="font-semibold text-[#333]">Seu carrinho</h2>
+    <div className="overflow-hidden rounded-lg border border-[var(--bege)] bg-white shadow-sm">
+      <div className="border-b border-[var(--bege)] bg-[var(--cinza-q)] px-4 py-3">
+        <h2 className="font-semibold text-[var(--ardosia)]">Seu carrinho</h2>
       </div>
 
       <div className="p-4">
         {items.length === 0 ? (
-          <p className="text-sm text-neutral-600">Seu carrinho está vazio.</p>
+          <p className="text-sm text-[var(--texto-sub)]">Seu carrinho está vazio.</p>
         ) : (
-          <ul className="divide-y divide-[var(--border-subtle)]">
+          <ul className="divide-y divide-[var(--bege)]">
             {items.map((p, i) => (
               <li key={`${p.id}-${i}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
-                  <div className="text-sm font-medium text-[#333]">{p.name}</div>
-                  <div className="text-xs text-neutral-500">
+                  <div className="text-sm font-medium text-[var(--ardosia)]">{p.name}</div>
+                  <div className="text-xs text-[var(--texto-sub)]">
                     {p.store} • R$ {Number(p.price).toFixed(2)}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeAt(i)}
-                  className="shrink-0 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-xs font-medium text-[#333] hover:bg-neutral-50"
+                  className="shrink-0 rounded-md border border-[var(--bege)] px-2 py-1 text-xs font-medium text-[var(--ardosia)] hover:bg-[var(--cinza-q)]"
                 >
                   Remover
                 </button>
@@ -74,15 +74,15 @@ export default function Cart({
         )}
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[var(--border-subtle)] bg-neutral-50 px-3 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-4">
-        <div className="text-sm text-[#333]">
-          Total: <strong className="text-lg text-[#00a650]">R$ {total.toFixed(2)}</strong>
+      <div className="flex flex-col gap-3 border-t border-[var(--bege)] bg-[var(--cinza-q)] px-3 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-4">
+        <div className="text-sm text-[var(--ardosia)]">
+          Total: <strong className="text-lg text-[var(--verde-xp)]">R$ {total.toFixed(2)}</strong>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={clear}
-            className="min-h-11 touch-manipulation rounded-md border border-[var(--border-subtle)] bg-white px-3 py-2 text-sm font-medium text-[#333] hover:bg-neutral-100 sm:min-h-10"
+            className="min-h-11 touch-manipulation rounded-md border border-[var(--bege)] bg-white px-3 py-2 text-sm font-medium text-[var(--ardosia)] hover:bg-[var(--offwhite)] sm:min-h-10"
           >
             Limpar
           </button>
@@ -90,7 +90,7 @@ export default function Cart({
             href={waLink}
             target="_blank"
             rel="noreferrer"
-            className="flex min-h-11 items-center justify-center rounded-md bg-[#00a650] px-3 py-2 text-center text-sm font-semibold text-white hover:bg-[#008f47] touch-manipulation sm:min-h-10"
+            className="flex min-h-11 items-center justify-center rounded-md bg-[var(--terracota)] px-3 py-2 text-center text-sm font-semibold text-white hover:bg-[var(--ml-blue-hover)] touch-manipulation sm:min-h-10"
           >
             Enviar por WhatsApp
           </a>

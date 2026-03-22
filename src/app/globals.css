@@ -2,36 +2,67 @@
 
 :root {
   color-scheme: light;
-  --background: #ebebeb;
-  --foreground: #333333;
-  --ml-yellow: #ffe600;
-  --ml-yellow-hover: #f5d800;
-  --ml-blue: #3483fa;
-  --ml-blue-hover: #2968c8;
-  --card: #ffffff;
-  --border-subtle: #e6e6e6;
+
+  /* Paleta CentroAju */
+  --ardosia: #1c2333;
+  --ardosia-m: #252d3f;
+  --ardosia-c: #2e3850;
+  --ardosia-borda: rgba(255, 255, 255, 0.08);
+  --terracota: #c4623a;
+  --terracota-v: #d97247;
+  --ouro: #c9a84c;
+  --ouro-v: #e0be70;
+  --offwhite: #f2ede6;
+  --creme-f: #ede6da;
+  --cinza-q: #f6f3ee;
+  --bege: #e8e0d0;
+  --texto: #1a1e2a;
+  --texto-sub: #4a5060;
+  --verde-xp: #3eb489;
+  --verde-xp-v: #52c99e;
+  --branco: #ffffff;
+
+  /* Tokens atuais do projeto mapeados para a nova paleta */
+  --background: var(--offwhite);
+  --foreground: var(--texto);
+  --ml-yellow: var(--ouro);
+  --ml-yellow-hover: var(--ouro-v);
+  --ml-blue: var(--terracota);
+  --ml-blue-hover: #b35532;
+  --card: var(--branco);
+  --border-subtle: var(--bege);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
 }
 
 html {
+  scroll-behavior: smooth;
   overflow-x: clip;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-body), "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
   /* iOS safe areas (notch / home indicator) */
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 /* Scroll horizontal suave em listas de chips (tabs, filtros) */

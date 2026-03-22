@@ -1,6 +1,5 @@
 'use client'
 
-import { supabase } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -22,32 +21,11 @@ function CartIcon({ className }: { className?: string }) {
 }
 
 export default function Navbar() {
-  const [user, setUser] = useState<{ email?: string } | null>(null)
-  const [authReady, setAuthReady] = useState(false)
   const [cartCount, setCartCount] = useState(0)
   const [query, setQuery] = useState('')
   const [toast, setToast] = useState<string | null>(null)
+  const [profileOpen, setProfileOpen] = useState(false)
   const router = useRouter()
-  const userName = user?.email?.split('@')[0] ?? 'usuário'
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setCartCount(0)
-    localStorage.removeItem('ca_cart')
-  }
-
-  // Auth — onAuthStateChange já dispara imediatamente com a sessão atual
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setAuthReady(true)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
 
   // Carrinho inicial
   useEffect(() => {
@@ -88,6 +66,15 @@ export default function Navbar() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!profileOpen) return
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setProfileOpen(false)
+    }
+    window.addEventListener('keydown', onEsc)
+    return () => window.removeEventListener('keydown', onEsc)
+  }, [profileOpen])
+
   function onSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
@@ -100,57 +87,32 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 shadow-sm">
-      <div className="bg-[var(--ml-yellow)]">
+      <div className="border-b border-[var(--ardosia-borda)] bg-[var(--ardosia)]">
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] gap-x-2 gap-y-2 px-3 py-2.5 sm:px-4 sm:py-3 md:grid-cols-[auto_1fr_auto] md:items-center md:gap-3">
           <Link
             href="/"
-            className="col-start-1 row-start-1 shrink-0 text-xl font-bold tracking-tight text-[#333] sm:text-2xl"
+            className="col-start-1 row-start-1 shrink-0 text-xl font-bold tracking-tight text-[var(--offwhite)] sm:text-2xl"
             style={{ fontFamily: 'inherit' }}
           >
-            CentroAju
+            Centro<span className="text-[var(--terracota-v)]">Aju</span>
           </Link>
 
           <div className="col-start-2 row-start-1 flex items-center justify-end gap-1.5 sm:gap-2 md:col-start-3 md:justify-end md:gap-3">
-            {authReady && user ? (
-              <div className="flex max-w-[min(160px,40vw)] items-center gap-1.5 sm:max-w-[220px] md:max-w-[260px]">
-                <span className="truncate text-xs text-[#333]/80" title={user.email}>
-                  Olá, {userName}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="touch-manipulation rounded border border-[#333]/25 bg-white/80 px-2 py-1.5 text-xs font-medium text-[#333] transition hover:bg-white"
-                >
-                  Sair
-                </button>
-              </div>
-            ) : authReady && !user ? (
-              <div className="hidden items-center gap-1.5 sm:flex md:gap-2">
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-[#333] underline-offset-2 hover:underline"
-                >
-                  Entre
-                </Link>
-                <span className="text-[#333]/50">|</span>
-                <Link
-                  href="/login?mode=signup"
-                  className="text-sm font-medium text-[#333] underline-offset-2 hover:underline"
-                >
-                  Crie conta
-                </Link>
-              </div>
-            ) : (
-              <div className="hidden h-8 w-[100px] animate-pulse rounded bg-black/5 sm:block md:w-[140px]" aria-hidden />
-            )}
+            <button
+              type="button"
+              onClick={() => setProfileOpen(true)}
+              className="touch-manipulation inline-flex items-center gap-2 rounded-md bg-[var(--terracota)] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[var(--ml-blue-hover)] sm:text-sm"
+            >
+              <span aria-hidden>👤</span> Meu Perfil
+            </button>
 
             <Link
               href="/carrinho"
-              className="touch-manipulation flex items-center gap-1 rounded-sm px-1.5 py-1.5 text-sm font-medium text-[#333] transition hover:bg-black/5 sm:gap-1.5 sm:px-2"
+              className="touch-manipulation flex items-center gap-1 rounded-md bg-white/8 px-1.5 py-1.5 text-sm font-medium text-[var(--offwhite)] transition hover:bg-white/15 sm:gap-1.5 sm:px-2"
             >
-              <CartIcon className="text-[#333]" />
+              <CartIcon className="text-[var(--offwhite)]" />
               <span className="hidden sm:inline">Carrinho</span>
-              <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-[#333]">
+              <span className="rounded-full bg-[var(--terracota)] px-1.5 py-0.5 text-xs font-semibold tabular-nums text-white">
                 {cartCount}
               </span>
             </Link>
@@ -168,12 +130,12 @@ export default function Navbar() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar no CentroAju…"
-              className="min-h-11 min-w-0 flex-1 rounded-l-sm border-0 bg-white px-3 py-2 text-base text-[#333] shadow-inner outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-[var(--ml-blue)] sm:min-h-10 sm:text-sm"
+              className="min-h-11 min-w-0 flex-1 rounded-l-md border-0 bg-white/8 px-3 py-2 text-base text-[var(--offwhite)] outline-none placeholder:text-[var(--offwhite)]/45 focus:ring-2 focus:ring-[var(--terracota)] sm:min-h-10 sm:text-sm"
               enterKeyHint="search"
             />
             <button
               type="submit"
-              className="touch-manipulation flex shrink-0 items-center gap-1 rounded-r-sm bg-[#333] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#222] sm:px-4"
+              className="touch-manipulation flex shrink-0 items-center gap-1 rounded-r-md bg-[var(--terracota)] px-3 py-2 text-sm font-medium text-white transition hover:bg-[var(--ml-blue-hover)] sm:px-4"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path
@@ -218,26 +180,81 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {authReady && !user ? (
-        <div className="flex items-center justify-center gap-3 border-b border-[var(--border-subtle)] bg-white py-2 sm:hidden">
-          <Link href="/login" className="text-sm font-medium text-[var(--ml-blue)]">
-            Entre
-          </Link>
-          <span className="text-neutral-300">|</span>
-          <Link href="/login?mode=signup" className="text-sm font-medium text-[var(--ml-blue)]">
-            Crie sua conta
-          </Link>
-        </div>
-      ) : null}
-
       {toast ? (
         <div
           className="pointer-events-none fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-[100] max-w-[min(92vw,24rem)] -translate-x-1/2 px-3 sm:bottom-6 sm:px-4"
           role="status"
           aria-live="polite"
         >
-          <div className="pointer-events-auto rounded-lg border border-[#00a650]/30 bg-[#333] px-4 py-3 text-center text-sm text-white shadow-lg">
+          <div className="pointer-events-auto rounded-lg border border-[var(--terracota)]/35 bg-[var(--ardosia)] px-4 py-3 text-center text-sm text-white shadow-lg">
             <span className="text-[#7ed957]">✓</span> {toast}
+          </div>
+        </div>
+      ) : null}
+
+      {profileOpen ? (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setProfileOpen(false)
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Perfil do usuário"
+        >
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-[var(--offwhite)] shadow-2xl">
+            <div className="relative bg-[var(--ardosia)] px-6 pb-6 pt-8 text-center">
+              <button
+                type="button"
+                onClick={() => setProfileOpen(false)}
+                className="absolute right-3 top-3 h-8 w-8 rounded-full bg-white/15 text-[var(--offwhite)] transition hover:bg-white/25"
+                aria-label="Fechar perfil"
+              >
+                ✕
+              </button>
+              <div className="mx-auto mb-2 flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/30 bg-[var(--terracota)] text-4xl">
+                👤
+              </div>
+              <h3 className="text-2xl text-[var(--offwhite)]">Maria da Silva</h3>
+              <p className="mt-1 inline-flex items-center gap-1 rounded-full border border-[var(--verde-xp)]/35 bg-[var(--verde-xp)]/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--verde-xp-v)]">
+                🗺 Exploradora do Centro
+              </p>
+            </div>
+
+            <div className="space-y-4 px-6 py-6">
+              <div className="rounded-xl border border-[var(--bege)] bg-white p-4">
+                <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide text-[var(--texto-sub)]">
+                  <span>Progresso XP</span>
+                  <span>1.240 / 2.000 XP</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-[var(--bege)]">
+                  <div className="h-full w-[62%] rounded-full bg-gradient-to-r from-[var(--verde-xp)] to-[var(--ouro)]" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-lg border border-[var(--bege)] bg-white p-3">
+                  <div className="text-xl font-bold text-[var(--ardosia)]">1.240</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--texto-sub)]">XP Total</div>
+                </div>
+                <div className="rounded-lg border border-[var(--bege)] bg-white p-3">
+                  <div className="text-xl font-bold text-[var(--ardosia)]">18</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--texto-sub)]">Compras</div>
+                </div>
+                <div className="rounded-lg border border-[var(--bege)] bg-white p-3">
+                  <div className="text-xl font-bold text-[var(--ardosia)]">🔥 3</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--texto-sub)]">Streak</div>
+                </div>
+              </div>
+
+              <Link
+                href="/zona-xp"
+                onClick={() => setProfileOpen(false)}
+                className="inline-flex w-full items-center justify-center rounded-lg bg-[var(--terracota)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--ml-blue-hover)]"
+              >
+                📍 Ir para Zona XP
+              </Link>
+            </div>
           </div>
         </div>
       ) : null}
