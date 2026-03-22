@@ -12,6 +12,15 @@ export interface Store {
   whatsapp: string
 }
 
+export type Event = {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  type: string;
+  date: string;
+}
+
 export interface UserProfile {
   id: string
   total_xp: number
