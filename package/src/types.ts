@@ -37,7 +37,7 @@ export type SetAllCookies = (
    *
    * @example
    * ```ts
-   * // Next.js middleware
+   * // Next.js proxy
    * setAll(cookiesToSet, headers) {
    *   cookiesToSet.forEach(({ name, value, options }) =>
    *     response.cookies.set(name, value, options)

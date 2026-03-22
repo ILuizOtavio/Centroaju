@@ -42,19 +42,19 @@ export function createServerClient<
  * Creates a Supabase Client for use on the server-side of a server-side
  * rendering (SSR) framework.
  *
- * There are two categories of uses for this function: use in middlewares and
+ * There are two categories of uses for this function: use in proxies and
  * use in pages, components or routes.
  *
- * **Use in middlewares.**
+ * **Use in proxies.**
  *
- * Middlewares are functions that run before any rendering logic is executed on
+ * Proxies are functions that run before any rendering logic is executed on
  * the server-side. They typically have access to request headers (cookies) and
  * can modify both the request and response headers.
  *
  * In most SSR frameworks, to use Supabase correctly you *must set up a
- * middleware* and use this function in it.
+ * proxy* and use this function in it.
  *
- * When using this in a middleware, the `cookie` option must be configured to
+ * When using this in a proxy, the `cookie` option must be configured to
  * use both `getAll` and `setAll`. Alternatively you can use the `get`, `set`
  * and `remove` functions. The latter are deprecated **and not recommended**
  * for most use cases due to being difficult to use properly and they do not
@@ -79,7 +79,7 @@ export function createServerClient<
  * `remove`) cookie access methods.**
  *
  * **IMPORTANT:** If the ability to set cookies or response headers is not
- * available **middleware or an equivalent must be used.** Failing to do this
+ * available **proxy or an equivalent must be used.** Failing to do this
  * will cause significant and difficult to debug authentication issues.
  *
  * When `setAll` (or the deprecated `set`, `remove`) cookie methods are not
@@ -87,8 +87,8 @@ export function createServerClient<
  * that requires setting cookies. If you see this warning, it usually means
  * that you are using the Supabase Client in a wrong way:
  *
- * - You should have, but did not configure a middleware client.
- * - There is a bug in your middleware function.
+ * - You should have, but did not configure a proxy client.
+ * - There is a bug in your proxy function.
  * - You are using features of the Supabase Client that change the User, e.g.
  *   by calling `supabase.auth.updateUser()` on the server.
  *
@@ -113,7 +113,7 @@ export function createServerClient<
  * Token refreshes write `Set-Cookie` headers to the response. If your app is
  * behind a CDN or reverse proxy (e.g. CloudFront, Vercel Edge, Cloudflare),
  * set `Cache-Control: private, no-store` on routes that handle authentication
- * (typically your middleware) to prevent these responses from being cached.
+ * (typically your proxy) to prevent these responses from being cached.
  *
  * **`getSession()` vs `getUser()`.**
  *

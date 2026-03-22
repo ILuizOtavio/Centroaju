@@ -19,3 +19,12 @@ export interface UserProfile {
   streak: number
   profile_type: 'explorador' | 'guardiao'
 }
+
+export type Event = {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  type: string;
+  date: string;
+}

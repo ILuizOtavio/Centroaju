@@ -55,7 +55,7 @@ refresh will fail because the token was already consumed by the first. The
 second request will receive `session: null` until the browser syncs the
 updated cookie from the first response.
 
-The **middleware pattern** mitigates this for the common case: middleware runs
+The **proxy pattern** mitigates this for the common case: proxy runs
 once per navigation and refreshes the session before the page renders, so
 subsequent requests within the same navigation see a valid token. For parallel
 requests (e.g. parallel `fetch()` calls from the client), handle `null`
